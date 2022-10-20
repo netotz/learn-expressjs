@@ -1,22 +1,30 @@
-import { deleteCharacterById, getCharacterById, getCharacters } from "./database/methods";
-import express from "express";
+import { deleteCharacterById, getCharacterById, getCharacters, putCharacters } from './database/methods';
+import express from 'express';
+import { Character } from './models/Character';
 
 const app = express();
+app.use(express.json());
 
-app.get("/characters", async (request, response) => {
+app.get('/characters', async (request, response) => {
     const characters = await getCharacters();
     return response.json(characters);
 });
 
-app.get("/characters/:id", async (request, response) => {
+app.get('/characters/:id', async (request, response) => {
     const id = request.params.id;
     const character = await getCharacterById(id);
     return character == null ? response.sendStatus(404) : response.json(character);
 });
 
-app.delete("/characters/:id", async (request, response) => {
+app.delete('/characters/:id', async (request, response) => {
     const id = request.params.id;
     const result = await deleteCharacterById(id);
+    return response.sendStatus(result || 500);
+});
+
+app.put('/characters', async (request, response) => {
+    const characters = request.body as Character[];
+    const result = await putCharacters(characters);
     return response.sendStatus(result || 500);
 });
 

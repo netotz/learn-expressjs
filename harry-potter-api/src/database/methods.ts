@@ -1,7 +1,7 @@
-import "dotenv/config";
-import { DynamoDBClient, ScanCommand } from "@aws-sdk/client-dynamodb";
-import { DeleteCommand, DeleteCommandInput, GetCommand, GetCommandInput, PutCommand, PutCommandInput, ScanCommandInput } from "@aws-sdk/lib-dynamodb";
-import { Character } from "../models/Character";
+import 'dotenv/config';
+import { DynamoDBClient, ScanCommand } from '@aws-sdk/client-dynamodb';
+import { BatchWriteCommand, BatchWriteCommandInput, DeleteCommand, DeleteCommandInput, GetCommand, GetCommandInput, PutCommand, PutCommandInput, ScanCommandInput } from '@aws-sdk/lib-dynamodb';
+import { Character } from '../models/Character';
 
 const dynamoDbClient = new DynamoDBClient({
     region: process.env.AWS_DEFAULT_REGION,
@@ -12,7 +12,7 @@ const dynamoDbClient = new DynamoDBClient({
     }
 });
 
-const TABLE_NAME = "harrypotter-api";
+const TABLE_NAME = 'harrypotter-api';
 
 export async function getCharacters() {
     const input: ScanCommandInput = {
@@ -31,6 +31,21 @@ export async function putCharacter(character: Character) {
     };
 
     const command = new PutCommand(input);
+    const output = await dynamoDbClient.send(command);
+    return output.$metadata?.httpStatusCode;
+}
+
+export async function putCharacters(characters: Character[]) {
+    const input: BatchWriteCommandInput = {
+        RequestItems: {
+            [TABLE_NAME]: characters.map(character => ({
+                PutRequest: {
+                    Item: character
+                }
+            }))
+        }
+    };
+    const command = new BatchWriteCommand(input);
     const output = await dynamoDbClient.send(command);
     return output.$metadata?.httpStatusCode;
 }
