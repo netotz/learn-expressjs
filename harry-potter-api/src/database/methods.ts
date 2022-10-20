@@ -46,7 +46,9 @@ export async function putCharacters(characters: Character[]) {
         }
     };
     const command = new BatchWriteCommand(input);
+
     const output = await dynamoDbClient.send(command);
+
     return output.$metadata?.httpStatusCode;
 }
 
@@ -57,7 +59,7 @@ export async function getCharacterById(id: string) {
             id: id
         }
     };
-
+    
     const command = new GetCommand(input);
     const output = await dynamoDbClient.send(command);
     return output.Item as Character || null;
@@ -73,5 +75,22 @@ export async function deleteCharacterById(id: string) {
 
     const command = new DeleteCommand(params);
     const output = await dynamoDbClient.send(command);
+    return output.$metadata?.httpStatusCode;
+}
+
+export async function deleteCharacters(ids: string[]) {
+    const input: BatchWriteCommandInput = {
+        RequestItems: {
+            [TABLE_NAME]: ids.map(id => ({
+                DeleteRequest: {
+                    Key: { id }
+                }
+            }))
+        }
+    };
+    const command = new BatchWriteCommand(input);
+
+    const output = await dynamoDbClient.send(command);
+
     return output.$metadata?.httpStatusCode;
 }
